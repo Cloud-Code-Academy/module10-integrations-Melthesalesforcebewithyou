@@ -116,7 +116,7 @@ public with sharing class DummyJSONCalloutTest {
 	static void testCreateContactFromJson() {
 		// JSON string that represents the response data
 		String jsonResponse = DummyJSONCalloutMockGenerator.DUMMY_JSON_USER_PAYLOAD;
-		
+
 		// Call the method
 		Contact cont = DummyJSONCallout.createContactFromJson(jsonResponse);
 
@@ -144,24 +144,73 @@ public with sharing class DummyJSONCalloutTest {
 
 		// As this is a future method, we need to enclose it in Test.startTest() and Test.stopTest() to ensure it's executed in the test context.
 		Test.startTest();
-		insert contacts;
+		Database.DMLOptions dml = new Database.DMLOptions();
+		dml.DuplicateRuleHeader.allowSave = true;
+		dml.DuplicateRuleHeader.runAsCurrentUser = true;
+		Database.SaveResult[] sr = Database.insert(contacts, dml);
 		Test.stopTest();
 
 		// After the stopTest, the future method will have run. Now we can check if the contact was created correctly.
 		contacts = [
-			SELECT DummyJSON_Id__c, Email, Phone, Birthdate, MailingStreet, MailingCity, MailingPostalCode, MailingState, MailingCountry
+			SELECT
+				DummyJSON_Id__c,
+				Email,
+				Phone,
+				Birthdate,
+				MailingStreet,
+				MailingCity,
+				MailingPostalCode,
+				MailingState,
+				MailingCountry
 			FROM Contact
-			WHERE Id IN :contacts AND DummyJSON_Id__c != null
+			WHERE Id IN :contacts AND DummyJSON_Id__c != NULL
 		];
 		Assert.isTrue(!contacts.isEmpty(), 'No contacts were created');
 
 		for (Contact cont : contacts) {
 			Assert.isTrue(cont.DummyJSON_Id__c.isNumeric(), 'DummyJSON_Id is not numeric string');
 			Integer dummyJSONId = Integer.valueOf(cont.DummyJSON_Id__c);
-			Assert.isTrue(
-				dummyJSONId >=0 && dummyJSONId <= 100, 
-				'Expected range of DummyJSON_Id is [0-100]'
-			);
+			Assert.isTrue(dummyJSONId >= 0 && dummyJSONId <= 100, 'Expected range of DummyJSON_Id is [0-100]');
 		}
+	}
+
+	@IsTest
+	static void testPostCreateDummyJSONUserAfterInsert() {
+		// Create and insert a test contact
+		Contact cont = new Contact(
+			FirstName = 'Test',
+			LastName = 'User',
+			Email = 'test@example.com',
+			Phone = '+123456789',
+			DummyJSON_Id__c = '105'
+		);
+		insert cont;
+
+		// Update the DummyJSON_Id__c to simulate the scenario where a contact gets a DummyJSON ID
+		cont.DummyJSON_Id__c = '1';
+		update cont;
+
+		// Register the mock callout class
+		Test.setMock(HttpCalloutMock.class, new DummyJSONCalloutMockGenerator());
+
+		// Execute the future method within test context
+		Test.startTest();
+		DummyJSONCallout.postCreateDummyJSONUser(cont.Id);
+		Test.stopTest();
+
+		// Query the contact after the callout
+		Contact updatedContact = [
+			SELECT DummyJSON_Last_Updated__c, DummyJSON_Id__c
+			FROM Contact
+			WHERE Id = :cont.Id
+		];
+
+		// Verify the contact was updated correctly
+		System.assertNotEquals(
+			null,
+			updatedContact.DummyJSON_Last_Updated__c,
+			'DummyJSON_Last_Updated__c should be set after successful callout'
+		);
+		System.assertEquals('1', updatedContact.DummyJSON_Id__c, 'DummyJSON_Id__c should remain unchanged');
 	}
 }
