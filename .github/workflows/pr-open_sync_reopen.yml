@@ -17,7 +17,10 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-  reuse-apex-tests:
+  apex-tests:
     if: github.triggering_actor != 'github-classroom[bot]'
-    uses: Cloud-Code-Academy/developer-kickstart-materials/.github/workflows/salesforce-apex-tests.yml@main
+    permissions:
+          actions: read
+          contents: read
+    uses: ./.github/workflows/reusable-apex-tests.yml
     secrets: inherit

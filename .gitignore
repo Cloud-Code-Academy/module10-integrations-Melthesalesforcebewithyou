@@ -44,8 +44,11 @@ $RECYCLE.BIN/
 **/.venv/
 **/venv/
 
-.vscode/
+# Cloud Code
 .husky/
+/.cursor
+/force-app/main/solutions
+/authFile.json
 .idea/
 .history/
 IlluminatedCloud/
