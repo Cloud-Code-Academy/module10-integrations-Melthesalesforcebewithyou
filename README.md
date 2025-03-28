@@ -42,3 +42,13 @@ If you get stuck at any point, here are some resources that might help:
 And remember, programming is often about solving problems, so don't be afraid to use search engines to find answers to your questions.
 
 Good luck with your learning journey in Salesforce development!
+
+
+## Copyright
+
+© 2025 Cloud Code. All rights reserved.
+
+This software is provided under the Cloud Code Developer Kickstart Program License (CCDKPL) Version 1.0.
+The software is licensed, not sold, and is intended for personal educational purposes only as part of the Cloud Code Developer Kickstart Program.
+
+See the full license terms in LICENSE.md for more details regarding usage restrictions, ownership, warranties, and limitations of liability.
